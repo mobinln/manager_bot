@@ -5,3 +5,4 @@ llama-index
 openai
 sentence-transformers[openvino]
 fastapi[standard]
+python-dotenv

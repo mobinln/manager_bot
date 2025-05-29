@@ -6,19 +6,7 @@ model = CrossEncoder(
     model_kwargs={"file_name": "openvino/openvino_model_qint8_quantized.xml"},
 )
 
-# 2. Predict scores for a pair of sentences
-scores = model.predict(
-    [
-        (
-            "How many people live in Berlin?",
-            "Berlin had a population of 3,520,031 registered inhabitants in an area of 891.82 square kilometers.",
-        ),
-        ("How many people live in Berlin?", "Berlin is well known for its museums."),
-    ]
-)
-# => array([ 8.607138 , -4.3200774], dtype=float32)
 
-# 3. Rank a list of passages for a query
 query = "How many people live in Berlin?"
 passages = [
     "Berlin had a population of 3,520,031 registered inhabitants in an area of 891.82 square kilometers.",

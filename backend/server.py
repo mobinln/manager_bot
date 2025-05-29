@@ -1,6 +1,8 @@
+import dotenv
 from typing import Union
-
 from fastapi import FastAPI
+
+dotenv.load_dotenv()
 
 app = FastAPI()
 
