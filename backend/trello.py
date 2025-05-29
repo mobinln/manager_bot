@@ -1,7 +1,8 @@
 import requests
 import dotenv
 import os
-from typing import Optional
+from agno.tools import tool
+from typing import Any, Callable, Dict, Optional
 dotenv.load_dotenv()
 BASE_URL = "https://api.trello.com/1"
 
@@ -53,9 +54,34 @@ def get_card( card_id):
     """Get a single card by ID."""
     return request("GET", f"/cards/{card_id}")
 
+def logger_hook(function_name: str, function_call: Callable, arguments: Dict[str, Any]):
+    """Hook function that wraps the tool execution"""
+    print(f"About to call {function_name} with arguments: {arguments}")
+    result = function_call(**arguments)
+    print(f"Function call completed with result: {result}")
+    return result
+
+# @tool(
+#     name="fetch_hackernews_stories",                # Custom name for the tool (otherwise the function name is used)
+#     description="Get top stories from Hacker News",  # Custom description (otherwise the function docstring is used)
+#     show_result=True,                               # Show result after function call
+#     stop_after_tool_call=True,                      # Return the result immediately after the tool call and stop the agent
+#     tool_hooks=[logger_hook],                       # Hook to run before and after execution
+#     requires_confirmation=True,                     # Requires user confirmation before execution
+#     cache_results=False                                # Cache TTL in seconds (1 hour)
+# )
 def trello_search(query:Optional[str]=None,listName:Optional[list]=None):
+    """
+    Fetch .
+
+    Args:
+        num_stories: Number of stories to fetch (default: 5)
+
+    Returns:
+        str: The top stories in text format
+    """
     if not query:
-        return get_board_cards(get_board_id())
+        return formatResponse(get_board_cards(get_board_id()),listName)
     else:
         return trello_search_partial(query,listName) 
 
@@ -68,7 +94,6 @@ def trello_search_partial(query:str,listName:Optional[list]=None):
                     }
                 )
     listIdDictionary={}
-    res=[]
     for item in searchCards["cards"]:
         list_id = item["idList"]
 
@@ -77,29 +102,34 @@ def trello_search_partial(query:str,listName:Optional[list]=None):
         else:
             list_name = get_list(list_id)["name"]
             listIdDictionary[list_id] = list_name
+            item["idList"]=list_name
+        
+    return formatResponse(searchCards["cards"],listName)
 
+def formatResponse(info,listName:Optional[list]=None):
+    res=[]
+    for item in info:
         full_card_data = {
-            "comments": item["badges"]["comments"],
-            "comment-description": item["badges"]["description"],
-            "due": item["due"],
-            "email": item.get("email"),
-            "listId": list_name,
-            "name": item["name"],
-            "start": item["start"],
-            "dueReminder": item["dueReminder"],
-            "desc": item["desc"],
-            "dateLastActivity": item["dateLastActivity"],
-            "dueComplete": item["dueComplete"],
-            "closed": item["closed"]
-        }
-
+                "comments": item["badges"]["comments"],
+                "comment-description": item["badges"]["description"],
+                "due": item["due"],
+                "email": item.get("email"),
+                "listId": item["idList"],
+                "name": item["name"],
+                "start": item["start"],
+                "dueReminder": item["dueReminder"],
+                "desc": item["desc"],
+                "dateLastActivity": item["dateLastActivity"],
+                "dueComplete": item["dueComplete"],
+                "closed": item["closed"]
+            }
         if listName is None:
             res.append(full_card_data)
         else:
-            print("here")
             filtered_card_data = {key: value for key, value in full_card_data.items() if key in listName}
             res.append(filtered_card_data)
     return res
 
-resp=trello_search("research")
-print(resp)
+
+# resp=trello_search("",["comments"])
+# print(resp)
