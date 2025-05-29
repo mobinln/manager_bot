@@ -1,0 +1,7 @@
+arxiv
+pandas
+agno
+llama-index
+openai
+sentence-transformers[openvino]
+fastapi[standard]
