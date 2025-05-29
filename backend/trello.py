@@ -77,23 +77,54 @@ def trello_search(query: Optional[str] = None, listName: Optional[str] = None) -
 
     This function queries the Trello API to fetch cards based on the provided `query`.
     If `query` is not provided, it retrieves all cards from the current Trello board.
-    The results are formatted using the `formatResponse` function. You can also filter
-    the returned fields of each card by specifying the `listName` parameter.
+    The results are formatted using the `formatResponse` function.
+
+    You can control which fields are included in each returned card dictionary using the `listName` parameter.
+    This parameter should be a comma-separated string containing the desired field names (e.g., "name,due,desc").
+    Only the specified fields will be included in each result object.
+
+    Valid field names and their meanings:
+
+        - "comments"              (int):        Number of comments on the card 
+        - "comment-description"   (str):        Text description related to comments 
+        - "due"                   (str | None): Due date in ISO 8601 format or `None` 
+        - "start"                 (str | None): Start date in ISO 8601 format or `None` 
+        - "dueReminder"           (str | None): Reminder date/time in ISO format or `None` 
+        - "dueComplete"           (bool):       Whether the due date has been marked as complete 
+        - "email"                 (str | None): Email address associated with the card, or `None` 
+        - "listId"                (str):        ID of the list this card belongs to 
+        - "name"                  (str):        Title or name of the card 
+        - "desc"                  (str):        Detailed description of the card 
+        - "dateLastActivity"      (str | None): Timestamp of the last activity on the card (ISO 8601 format) or `None` 
+        - "closed"                (bool):       Whether the card is archived 
+
+    **Notes**:
+    - These fields map directly from the Trello API response.
+    - If the API field is `null`, it will be returned as `None` in Python.
+    - Date fields are returned as ISO 8601 strings (e.g., "2024-05-29T13:45:00.000Z").
+    - If `listName` is not provided, all available fields will be returned for each card.
 
     Args:
         query (Optional[str]): A string used to search for matching Trello cards.
-                               If omitted, all cards on the board will be returned.
-        listName (Optional[list]): A list of field names (e.g., ["name", "due"]) to include
-                                   in the result for each card. If None, all available fields
-                                   will be included.
+                            If omitted, all cards on the board will be returned.
+        listName (Optional[str]): A comma-separated string of field names to include
+                                in the result for each card. If None, all available
+                                fields will be included.
 
     Returns:
-        list[dict]: A list of dictionaries, each representing a Trello card with the requested fields.
+        list[dict]: A list of dictionaries, each representing a Trello card with only the requested fields.
+                    Keys are the field names, and values match the expected types above. If a field is `null`
+                    in the Trello API, it will appear as `None` in the result.
     """
-    if not query:
-        return formatResponse(get_board_cards(get_board_id()), [listName])
+    if listName:
+        listName.replace(" ","")
+        requestedItems=listName.split(',')
     else:
-        return trello_search_partial(query, [listName])
+        requestedItems=None 
+    if not query:
+        return formatResponse(get_board_cards(get_board_id()), requestedItems)
+    else:
+        return trello_search_partial(query, requestedItems)
 
 
 def trello_search_partial(query: str, listName: Optional[list] = None):
@@ -141,5 +172,5 @@ def formatResponse(info, listName: Optional[list] = None):
     return res
 
 
-# resp=trello_search("",["comments"])
+# resp=trello_search("research")
 # print(resp)
