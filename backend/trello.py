@@ -54,31 +54,32 @@ def get_card( card_id):
     """Get a single card by ID."""
     return request("GET", f"/cards/{card_id}")
 
-def logger_hook(function_name: str, function_call: Callable, arguments: Dict[str, Any]):
-    """Hook function that wraps the tool execution"""
-    print(f"About to call {function_name} with arguments: {arguments}")
-    result = function_call(**arguments)
-    print(f"Function call completed with result: {result}")
-    return result
-
-# @tool(
-#     name="fetch_hackernews_stories",                # Custom name for the tool (otherwise the function name is used)
-#     description="Get top stories from Hacker News",  # Custom description (otherwise the function docstring is used)
-#     show_result=True,                               # Show result after function call
-#     stop_after_tool_call=True,                      # Return the result immediately after the tool call and stop the agent
-#     tool_hooks=[logger_hook],                       # Hook to run before and after execution
-#     requires_confirmation=True,                     # Requires user confirmation before execution
-#     cache_results=False                                # Cache TTL in seconds (1 hour)
-# )
+@tool(
+    name="trello search",                # Custom name for the tool (otherwise the function name is used)
+    description="get cards from trello from a query ",  # Custom description (otherwise the function docstring is used)
+    show_result=False,                               # Show result after function call
+    stop_after_tool_call=False,                      # Return the result immediately after the tool call and stop the agent                     # Hook to run before and after execution
+    requires_confirmation=False,                     # Requires user confirmation before execution
+    cache_results=False                                # Cache TTL in seconds (1 hour)
+)
 def trello_search(query:Optional[str]=None,listName:Optional[list]=None):
     """
-    Fetch .
+    Fetch Trello cards either by a search query or by retrieving all cards on the board.
+
+    This function queries the Trello API to fetch cards based on the provided `query`.
+    If `query` is not provided, it retrieves all cards from the current Trello board.
+    The results are formatted using the `formatResponse` function. You can also filter
+    the returned fields of each card by specifying the `listName` parameter.
 
     Args:
-        num_stories: Number of stories to fetch (default: 5)
+        query (Optional[str]): A string used to search for matching Trello cards. 
+                               If omitted, all cards on the board will be returned.
+        listName (Optional[list]): A list of field names (e.g., ["name", "due"]) to include 
+                                   in the result for each card. If None, all available fields 
+                                   will be included.
 
     Returns:
-        str: The top stories in text format
+        list[dict]: A list of dictionaries, each representing a Trello card with the requested fields.
     """
     if not query:
         return formatResponse(get_board_cards(get_board_id()),listName)
