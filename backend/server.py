@@ -1,9 +1,6 @@
-import dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .schemas import ChatCompletionBody, SimpleResponse
-
-dotenv.load_dotenv()
 
 from .resources.KnowledgeBaseAgent import KnowledgeBaseAgent
 
@@ -19,5 +16,7 @@ app.add_middleware(
 
 @app.post("/chat/completion", response_model=SimpleResponse)
 def create_chat_completion(body: ChatCompletionBody):
-    response = KnowledgeBaseAgent.run(body.message)
+    response = KnowledgeBaseAgent.run(
+        body.message,
+    )
     return {"detail": response.content}

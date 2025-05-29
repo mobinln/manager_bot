@@ -3,10 +3,14 @@ from agno.agent import Agent
 from agno.knowledge.pdf import PDFReader, PDFKnowledgeBase
 from agno.vectordb.chroma import ChromaDb
 from agno.models.openai.like import OpenAILike
+from agno.storage.json import JsonStorage
 
 from agno.embedder.openai import OpenAIEmbedder
 from agno.embedder.sentence_transformer import SentenceTransformerEmbedder
 
+import dotenv
+
+dotenv.load_dotenv()
 
 vector_db = ChromaDb(
     collection="documents",
@@ -28,6 +32,7 @@ KnowledgeBaseAgent = Agent(
         api_key=os.getenv("OPENAI_API_KEY"),
         base_url=os.getenv("METIS_OPENAI_BASE"),
     ),
+    storage=JsonStorage(dir_path="tmp/agent_sessions_json"),
     knowledge=knowledge_base,
     show_tool_calls=True,
     debug_mode=True,
