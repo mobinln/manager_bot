@@ -6,3 +6,4 @@ openai
 sentence-transformers[openvino]
 fastapi[standard]
 python-dotenv
+chromadb

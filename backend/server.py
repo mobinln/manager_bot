@@ -1,17 +1,23 @@
 import dotenv
-from typing import Union
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from .schemas import ChatCompletionBody, SimpleResponse
 
 dotenv.load_dotenv()
 
+from .resources.KnowledgeBaseAgent import KnowledgeBaseAgent
+
 app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
-@app.get("/")
-def read_root():
-    return {"Hello": "World"}
-
-
-@app.get("/items/{item_id}")
-def read_item(item_id: int, q: Union[str, None] = None):
-    return {"item_id": item_id, "q": q}
+@app.post("/chat/completion", response_model=SimpleResponse)
+def create_chat_completion(body: ChatCompletionBody):
+    response = KnowledgeBaseAgent.run(body.message)
+    return {"detail": response.content}
