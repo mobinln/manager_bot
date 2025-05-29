@@ -16,7 +16,5 @@ app.add_middleware(
 
 @app.post("/chat/completion", response_model=SimpleResponse)
 def create_chat_completion(body: ChatCompletionBody):
-    response = KnowledgeBaseAgent.run(
-        body.message,
-    )
+    response = KnowledgeBaseAgent.run(body.message)
     return {"detail": response.content}

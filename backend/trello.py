@@ -2,20 +2,21 @@ import requests
 import dotenv
 import os
 from agno.tools import tool
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable, Dict, Optional, List
+
 dotenv.load_dotenv()
 BASE_URL = "https://api.trello.com/1"
 
+
 def get_auth_params():
-    return {
-        "key": os.getenv("TRELLO_API_KEY"),
-        "token": os.getenv("TRELLO_TOKEN")
-    }
+    return {"key": os.getenv("TRELLO_API_KEY"), "token": os.getenv("TRELLO_TOKEN")}
+
 
 def get_board_id():
     return os.getenv("BOARD_ID")
 
-def request( method, endpoint, params=None, json=None):
+
+def request(method, endpoint, params=None, json=None):
     url = f"{BASE_URL}{endpoint}"
     if params is None:
         params = {}
@@ -24,45 +25,53 @@ def request( method, endpoint, params=None, json=None):
     response.raise_for_status()
     return response.json()
 
+
 # Boards
-def get_boards( member_id='me'):
+def get_boards(member_id="me"):
     """Get all boards for a member."""
     return request("GET", f"/members/{member_id}/boards")
 
-def get_board( board_id):
+
+def get_board(board_id):
     """Get a single board by ID."""
     return request("GET", f"/boards/{board_id}")
 
-def get_board_cards( board_id):
+
+def get_board_cards(board_id):
     """Get a single board by ID."""
     return request("GET", f"/boards/{board_id}/cards")
 
-def get_lists_on_board( board_id):
+
+def get_lists_on_board(board_id):
     """Get all lists on a board."""
     return request("GET", f"/boards/{board_id}/lists")
 
-def get_list( list_id):
+
+def get_list(list_id):
     """Get a single list by ID."""
     return request("GET", f"/lists/{list_id}")
 
+
 # Cards
-def get_cards_on_list( list_id):
+def get_cards_on_list(list_id):
     """Get all cards on a list."""
     return request("GET", f"/lists/{list_id}/cards")
 
-def get_card( card_id):
+
+def get_card(card_id):
     """Get a single card by ID."""
     return request("GET", f"/cards/{card_id}")
 
+
 @tool(
-    name="trello search",                # Custom name for the tool (otherwise the function name is used)
+    name="trello_search",  # Custom name for the tool (otherwise the function name is used)
     description="get cards from trello from a query ",  # Custom description (otherwise the function docstring is used)
-    show_result=False,                               # Show result after function call
-    stop_after_tool_call=False,                      # Return the result immediately after the tool call and stop the agent                     # Hook to run before and after execution
-    requires_confirmation=False,                     # Requires user confirmation before execution
-    cache_results=False                                # Cache TTL in seconds (1 hour)
+    show_result=False,  # Show result after function call
+    stop_after_tool_call=False,  # Return the result immediately after the tool call and stop the agent                     # Hook to run before and after execution
+    requires_confirmation=False,  # Requires user confirmation before execution
+    cache_results=False,  # Cache TTL in seconds (1 hour)
 )
-def trello_search(query:Optional[str]=None,listName:Optional[list]=None):
+def trello_search(query: Optional[str] = None, listName: Optional[str] = None) -> Any:
     """
     Fetch Trello cards either by a search query or by retrieving all cards on the board.
 
@@ -72,29 +81,26 @@ def trello_search(query:Optional[str]=None,listName:Optional[list]=None):
     the returned fields of each card by specifying the `listName` parameter.
 
     Args:
-        query (Optional[str]): A string used to search for matching Trello cards. 
+        query (Optional[str]): A string used to search for matching Trello cards.
                                If omitted, all cards on the board will be returned.
-        listName (Optional[list]): A list of field names (e.g., ["name", "due"]) to include 
-                                   in the result for each card. If None, all available fields 
+        listName (Optional[list]): A list of field names (e.g., ["name", "due"]) to include
+                                   in the result for each card. If None, all available fields
                                    will be included.
 
     Returns:
         list[dict]: A list of dictionaries, each representing a Trello card with the requested fields.
     """
     if not query:
-        return formatResponse(get_board_cards(get_board_id()),listName)
+        return formatResponse(get_board_cards(get_board_id()), [listName])
     else:
-        return trello_search_partial(query,listName) 
+        return trello_search_partial(query, [listName])
 
-def trello_search_partial(query:str,listName:Optional[list]=None):
-    searchCards= request('GET',"/search",
-                   {
-                       "partial":"true" ,
-                       "query":query,
-                       "modelTypes": "cards"  
-                    }
-                )
-    listIdDictionary={}
+
+def trello_search_partial(query: str, listName: Optional[list] = None):
+    searchCards = request(
+        "GET", "/search", {"partial": "true", "query": query, "modelTypes": "cards"}
+    )
+    listIdDictionary = {}
     for item in searchCards["cards"]:
         list_id = item["idList"]
 
@@ -103,31 +109,34 @@ def trello_search_partial(query:str,listName:Optional[list]=None):
         else:
             list_name = get_list(list_id)["name"]
             listIdDictionary[list_id] = list_name
-            item["idList"]=list_name
-        
-    return formatResponse(searchCards["cards"],listName)
+            item["idList"] = list_name
 
-def formatResponse(info,listName:Optional[list]=None):
-    res=[]
+    return formatResponse(searchCards["cards"], listName)
+
+
+def formatResponse(info, listName: Optional[list] = None):
+    res = []
     for item in info:
         full_card_data = {
-                "comments": item["badges"]["comments"],
-                "comment-description": item["badges"]["description"],
-                "due": item["due"],
-                "email": item.get("email"),
-                "listId": item["idList"],
-                "name": item["name"],
-                "start": item["start"],
-                "dueReminder": item["dueReminder"],
-                "desc": item["desc"],
-                "dateLastActivity": item["dateLastActivity"],
-                "dueComplete": item["dueComplete"],
-                "closed": item["closed"]
-            }
+            "comments": item["badges"]["comments"],
+            "comment-description": item["badges"]["description"],
+            "due": item["due"],
+            "email": item.get("email"),
+            "listId": item["idList"],
+            "name": item["name"],
+            "start": item["start"],
+            "dueReminder": item["dueReminder"],
+            "desc": item["desc"],
+            "dateLastActivity": item["dateLastActivity"],
+            "dueComplete": item["dueComplete"],
+            "closed": item["closed"],
+        }
         if listName is None:
             res.append(full_card_data)
         else:
-            filtered_card_data = {key: value for key, value in full_card_data.items() if key in listName}
+            filtered_card_data = {
+                key: value for key, value in full_card_data.items() if key in listName
+            }
             res.append(filtered_card_data)
     return res
 
