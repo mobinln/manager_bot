@@ -1,7 +1,8 @@
 import requests
 import dotenv
 import os
-from typing import Optional
+from agno.tools import tool
+from typing import Any, Callable, Dict, Optional
 dotenv.load_dotenv()
 BASE_URL = "https://api.trello.com/1"
 
@@ -53,9 +54,35 @@ def get_card( card_id):
     """Get a single card by ID."""
     return request("GET", f"/cards/{card_id}")
 
+@tool(
+    name="trello search",                # Custom name for the tool (otherwise the function name is used)
+    description="get cards from trello from a query ",  # Custom description (otherwise the function docstring is used)
+    show_result=False,                               # Show result after function call
+    stop_after_tool_call=False,                      # Return the result immediately after the tool call and stop the agent                     # Hook to run before and after execution
+    requires_confirmation=False,                     # Requires user confirmation before execution
+    cache_results=False                                # Cache TTL in seconds (1 hour)
+)
 def trello_search(query:Optional[str]=None,listName:Optional[list]=None):
+    """
+    Fetch Trello cards either by a search query or by retrieving all cards on the board.
+
+    This function queries the Trello API to fetch cards based on the provided `query`.
+    If `query` is not provided, it retrieves all cards from the current Trello board.
+    The results are formatted using the `formatResponse` function. You can also filter
+    the returned fields of each card by specifying the `listName` parameter.
+
+    Args:
+        query (Optional[str]): A string used to search for matching Trello cards. 
+                               If omitted, all cards on the board will be returned.
+        listName (Optional[list]): A list of field names (e.g., ["name", "due"]) to include 
+                                   in the result for each card. If None, all available fields 
+                                   will be included.
+
+    Returns:
+        list[dict]: A list of dictionaries, each representing a Trello card with the requested fields.
+    """
     if not query:
-        return get_board_cards(get_board_id())
+        return formatResponse(get_board_cards(get_board_id()),listName)
     else:
         return trello_search_partial(query,listName) 
 
@@ -68,7 +95,6 @@ def trello_search_partial(query:str,listName:Optional[list]=None):
                     }
                 )
     listIdDictionary={}
-    res=[]
     for item in searchCards["cards"]:
         list_id = item["idList"]
 
@@ -77,29 +103,34 @@ def trello_search_partial(query:str,listName:Optional[list]=None):
         else:
             list_name = get_list(list_id)["name"]
             listIdDictionary[list_id] = list_name
+            item["idList"]=list_name
+        
+    return formatResponse(searchCards["cards"],listName)
 
+def formatResponse(info,listName:Optional[list]=None):
+    res=[]
+    for item in info:
         full_card_data = {
-            "comments": item["badges"]["comments"],
-            "comment-description": item["badges"]["description"],
-            "due": item["due"],
-            "email": item.get("email"),
-            "listId": list_name,
-            "name": item["name"],
-            "start": item["start"],
-            "dueReminder": item["dueReminder"],
-            "desc": item["desc"],
-            "dateLastActivity": item["dateLastActivity"],
-            "dueComplete": item["dueComplete"],
-            "closed": item["closed"]
-        }
-
+                "comments": item["badges"]["comments"],
+                "comment-description": item["badges"]["description"],
+                "due": item["due"],
+                "email": item.get("email"),
+                "listId": item["idList"],
+                "name": item["name"],
+                "start": item["start"],
+                "dueReminder": item["dueReminder"],
+                "desc": item["desc"],
+                "dateLastActivity": item["dateLastActivity"],
+                "dueComplete": item["dueComplete"],
+                "closed": item["closed"]
+            }
         if listName is None:
             res.append(full_card_data)
         else:
-            print("here")
             filtered_card_data = {key: value for key, value in full_card_data.items() if key in listName}
             res.append(filtered_card_data)
     return res
 
-resp=trello_search("research")
-print(resp)
+
+# resp=trello_search("",["comments"])
+# print(resp)
