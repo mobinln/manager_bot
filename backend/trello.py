@@ -157,23 +157,20 @@ def trello_search_partial(query: str, listName: Optional[list] = None):
     searchCards = request(
         "GET", "/search", {"partial": "true", "query": query, "modelTypes": "cards"}
     )
-    listIdDictionary = {}
-    for item in searchCards["cards"]:
-        list_id = item["idList"]
+    return formatResponse(searchCards["cards"], listName)
 
+
+def formatResponse(info, listName: Optional[List[str]] = None):
+    res = []
+    listIdDictionary={}
+    for item in info:
+        list_id = item["idList"]
         if list_id in listIdDictionary:
             list_name = listIdDictionary[list_id]
         else:
             list_name = get_list(list_id)["name"]
             listIdDictionary[list_id] = list_name
             item["idList"] = list_name
-
-    return formatResponse(searchCards["cards"], listName)
-
-
-def formatResponse(info, listName: Optional[List[str]] = None):
-    res = []
-    for item in info:
         full_card_data = {
             "comments": item["badges"]["comments"],
             "commentDescription": item["badges"]["description"],
@@ -194,5 +191,6 @@ def formatResponse(info, listName: Optional[List[str]] = None):
     return res
 
 
-# resp=get_list_names()
+# resp=get_trello_list_names()
+# print(trello_search(listName=resp[0]))
 # print(resp)
