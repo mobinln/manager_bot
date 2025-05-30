@@ -12,7 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from agno.embedder.openai import OpenAIEmbedder
 from agno.embedder.sentence_transformer import SentenceTransformerEmbedder
 
-from .trello import trello_search
+from .trello import trello_search, get_trello_list_names
 import dotenv
 
 dotenv.load_dotenv()
@@ -35,7 +35,7 @@ knowledge_base.load()
 basic_agent = Agent(
     name="Basic Agent",
     model=OpenAIChat(
-        id="gpt-4o",
+        id="gpt-4o-mini",
         base_url=os.getenv("METIS_OPENAI_BASE"),
     ),  # Ensure OPENAI_API_KEY is set
     storage=SqliteStorage(table_name="agent_sessions", db_file="./data.db"),
@@ -46,7 +46,7 @@ basic_agent = Agent(
     knowledge=knowledge_base,
     show_tool_calls=True,
     debug_mode=True,
-    tools=[trello_search],
+    tools=[trello_search, get_trello_list_names],
 )
 
 app = FastAPIApp(agent=basic_agent).get_app()
