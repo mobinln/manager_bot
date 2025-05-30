@@ -23,7 +23,7 @@ vector_db = ChromaDb(
     # embedder=SentenceTransformerEmbedder(),
 )
 knowledge_base = PDFKnowledgeBase(
-    path="/home/larijanian/Documents/hackathon/manager_bot/backend/resources/data",
+    path=os.getcwd() + "/resources/data",
     vector_db=vector_db,
     reader=PDFReader(chunk=True),
 )

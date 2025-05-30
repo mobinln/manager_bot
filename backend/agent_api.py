@@ -1,32 +1,41 @@
 import os
 from agno.agent import Agent
+from agno.knowledge.pdf import PDFReader, PDFKnowledgeBase
+from agno.vectordb.chroma import ChromaDb
+from agno.models.openai import OpenAIChat
+from agno.models.openai.like import OpenAILike
+from agno.storage.sqlite import SqliteStorage
 from agno.app.fastapi.app import FastAPIApp
 from agno.app.fastapi.serve import serve_fastapi_app
-from agno.models.openai import OpenAIChat
-from agno.storage.sqlite import SqliteStorage
-from agno.knowledge.document import DocumentKnowledgeBase
-from agno.vectordb.chroma import ChromaDb
+
+from agno.embedder.openai import OpenAIEmbedder
 from agno.embedder.sentence_transformer import SentenceTransformerEmbedder
 
+from trello import trello_search
 import dotenv
 
 dotenv.load_dotenv()
 
-knowledge_base = DocumentKnowledgeBase(
-    documents=[],
-    vector_db=ChromaDb(
-        collection="documents",
-        path="./chromadb",
-        persistent_client=True,
-        embedder=SentenceTransformerEmbedder(),
+vector_db = ChromaDb(
+    collection="documents",
+    embedder=OpenAIEmbedder(
+        api_key=os.getenv("OPENAI_API_KEY"),
+        base_url=os.getenv("METIS_OPENAI_BASE"),
     ),
+    # embedder=SentenceTransformerEmbedder(),
+)
+knowledge_base = PDFKnowledgeBase(
+    path=os.getcwd() + "/resources/data",
+    vector_db=vector_db,
+    reader=PDFReader(chunk=True),
 )
 knowledge_base.load()
 
 basic_agent = Agent(
     name="Basic Agent",
     model=OpenAIChat(
-        id="gpt-4o-mini", base_url=os.getenv("OPENAI_API_BASE")
+        id="gpt-4o-mini",
+        base_url=os.getenv("METIS_OPENAI_BASE"),
     ),  # Ensure OPENAI_API_KEY is set
     storage=SqliteStorage(table_name="agent_sessions", db_file="./data.db"),
     add_history_to_messages=True,
@@ -36,10 +45,11 @@ basic_agent = Agent(
     knowledge=knowledge_base,
     show_tool_calls=True,
     debug_mode=True,
+    tools=[trello_search],
 )
 
 app = FastAPIApp(agent=basic_agent).get_app()
 
 if __name__ == "__main__":
     print(basic_agent.get_session_data())
-    serve_fastapi_app("main:app", port=8001, reload=True)
+    serve_fastapi_app("agent_api:app", port=8001, reload=True)
