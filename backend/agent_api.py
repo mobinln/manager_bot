@@ -13,6 +13,7 @@ from agno.embedder.openai import OpenAIEmbedder
 from agno.embedder.sentence_transformer import SentenceTransformerEmbedder
 
 from .trello import trello_search, get_trello_list_names
+from .gitlab import get_git_merge_requests
 import dotenv
 
 dotenv.load_dotenv()
@@ -23,14 +24,17 @@ vector_db = ChromaDb(
         api_key=os.getenv("OPENAI_API_KEY"),
         base_url=os.getenv("METIS_OPENAI_BASE"),
     ),
+    path=os.getcwd() + "/chromadb",
     # embedder=SentenceTransformerEmbedder(),
 )
+
 knowledge_base = PDFKnowledgeBase(
-    path=os.getcwd() + "/resources/data",
+    path=os.getcwd() + "/backend/resources/data",
     vector_db=vector_db,
     reader=PDFReader(chunk=True),
 )
 knowledge_base.load()
+
 
 basic_agent = Agent(
     name="Basic Agent",
@@ -46,7 +50,7 @@ basic_agent = Agent(
     knowledge=knowledge_base,
     show_tool_calls=True,
     debug_mode=True,
-    tools=[trello_search, get_trello_list_names],
+    tools=[trello_search, get_trello_list_names, get_git_merge_requests],
 )
 
 app = FastAPIApp(agent=basic_agent).get_app()
