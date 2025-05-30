@@ -60,7 +60,7 @@ def get_git_merge_requests():
     res=[]
     for mr in response:
         mrDetail={
-            "id":mr.get("id"),
+            "comments_id":mr.get("iid"), 
             "title": mr.get("title"),
             "description": mr.get("description"),
             "state": mr.get("state"),  # e.g., "opened", "merged", "closed"
@@ -81,5 +81,48 @@ def get_git_merge_requests():
         }
         res.append(mrDetail)
     return res    
+@tool(
+    name="get_git_merge_request_comments",
+    description="Fetches all comments (notes) for a specific merge request in the GitLab project.",
+    show_result=False,
+    stop_after_tool_call=False,
+    requires_confirmation=False,
+    cache_results=False,
+)
+def get_git_merge_request_comments(mr_id:int):
+    """
+    Retrieve all comments (also called notes) for a given merge request in the GitLab project.
+
+    This function uses the GitLab API to fetch all user-submitted comments (notes) associated
+    with a specific merge request, identified by its internal ID (`iid`).
+
+    Args:
+        mr_id (int): The internal ID (`iid`) of the merge request to retrieve comments for.
+
+    Returns:
+        list[dict]: A list of comment dictionaries, each containing:
+            - merge_request_id (int): The ID of the merge request.
+            - body (str): The content of the comment.
+            - created_at (str): Timestamp when the comment was created (ISO 8601 format).
+            - updated_at (str): Timestamp of the last update to the comment (if any).
+
+    Note:
+        - This does not include system-generated notes or discussion threads.
+        - Use the `/discussions` endpoint if you want full threaded conversations.
+    """
+    notes = request("GET", f"/merge_requests/{mr_id}/notes")
+    all_comments=[]
+    for note in notes:
+        comment = {
+            "merge_request_id": mr_id,
+            "author": note.get("author", {}).get("name"),
+            "body": note.get("body"),
+            "created_at": note.get("created_at"),
+            "updated_at": note.get("updated_at"),
+        }
+        all_comments.append(comment)
+
+    return all_comments
 # if __name__ == "__main__":
-#     print(get_git_merge_requests())
+#     print(get_git_merge_request_comments(1))
+#     # print(get_git_merge_requests())
