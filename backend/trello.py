@@ -2,7 +2,7 @@ import requests
 import dotenv
 import os
 from agno.tools import tool
-from typing import  Optional
+from typing import  List, Optional
 from backend.schemas import TrelloCard
 
 dotenv.load_dotenv()
@@ -63,6 +63,28 @@ def get_card(card_id):
     """Get a single card by ID."""
     return request("GET", f"/cards/{card_id}")
 
+@tool(
+    name="get_list_names",  # Custom name for the tool (otherwise the function name is used)
+    description="gets names of existing lists on board ",  # Custom description (otherwise the function docstring is used)
+    show_result=False,  # Show result after function call
+    stop_after_tool_call=False,  # Return the result immediately after the tool call and stop the agent                     # Hook to run before and after execution
+    requires_confirmation=False,  # Requires user confirmation before execution
+    cache_results=False,  # Cache TTL in seconds (1 hour)
+)
+def get_list_names() -> List[str]:
+    """
+    Fetch the names of all existing lists on the current Trello board.
+
+    This function makes a GET request to the Trello API to retrieve the lists associated
+    with the currently active board, identified by `get_board_id()`. It extracts the "name"
+    field from each list object in the response and returns them as a list of strings.
+
+    Returns:
+        List[str]: A list containing the names of all lists on the current Trello board.
+                   Only items with a "name" field will be included in the result.
+    """
+    board=request("GET",f"/boards/{get_board_id()}/lists")
+    return [item["name"] for item in board if "name" in item]
 
 @tool(
     name="trello_search",  # Custom name for the tool (otherwise the function name is used)
@@ -168,5 +190,5 @@ def formatResponse(info, listName: Optional[list] = None):
     return res
 
 
-# resp=trello_search("research")
+# resp=get_list_names()
 # print(resp)
