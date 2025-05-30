@@ -2,7 +2,8 @@ import requests
 import dotenv
 import os
 from agno.tools import tool
-from typing import Any, Callable, Dict, Optional, List
+from typing import  Optional
+from backend.schemas import TrelloCard
 
 dotenv.load_dotenv()
 BASE_URL = "https://api.trello.com/1"
@@ -71,7 +72,7 @@ def get_card(card_id):
     requires_confirmation=False,  # Requires user confirmation before execution
     cache_results=False,  # Cache TTL in seconds (1 hour)
 )
-def trello_search(query: Optional[str] = None, listName: Optional[str] = None) -> Any:
+def trello_search(query: Optional[str] = None, listName: Optional[str] = None) -> TrelloCard:
     """
     Fetch Trello cards either by a search query or by retrieving all cards on the board.
 
