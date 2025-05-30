@@ -2,8 +2,15 @@ import { chatApi } from "@/lib/api";
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { HistoryDTO } from "@/types/message";
+import { useSearchParams } from "next/navigation";
 
 export const useChat = () => {
+  const searchparams = useSearchParams();
+
+  if (searchparams.get("id") === null) {
+    throw new Error("Session ID is required");
+  }
+
   const [inputV, setInputV] = useState("");
 
   const [messages, setMessages] = useState<HistoryDTO[]>([]);
@@ -14,17 +21,17 @@ export const useChat = () => {
 
   const { mutate, isPending } = useMutation({
     mutationFn: (data: string) => {
+      const formData = new FormData();
+      formData.append("message", data);
+      formData.append("session_id", searchparams.get("id") || "");
       return chatApi
-        .sendMessage({
-          message: data,
-          history: messages,
-        })
+        .sendMessage(formData)
         .then((res) => {
           setMessages((prev) => [
             ...prev,
             {
               message: data,
-              assistant_response: res.detail,
+              assistant_response: res.content,
             },
           ]);
         })

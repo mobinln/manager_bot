@@ -7,7 +7,7 @@ export interface Message {
 
 export interface SendMessageDTO {
   message: string;
-  history: HistoryDTO[];
+  session_id: string;
 }
 
 export interface HistoryDTO {
@@ -16,5 +16,5 @@ export interface HistoryDTO {
 }
 
 export interface ReceiveMessageDTO {
-  detail: string;
+  content: string;
 }

@@ -7,6 +7,7 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Send, Bot, User } from "lucide-react";
 import { useChat } from "./useChat";
+import ReactMarkdown from "react-markdown";
 
 export function Chat() {
   const { inputV, messages, handleChangeInput, handleSubmit, isTyping } = useChat();
@@ -49,9 +50,9 @@ export function Chat() {
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.map((pair, index) =>
-          Object.keys(pair).map((keySender) => (
+          Object.keys(pair).map((keySender, i) => (
             <div
-              key={index}
+              key={`${index}-${i}`}
               className={`flex items-start space-x-3 animate-in slide-in-from-bottom-2 duration-300 ${
                 keySender === "message" ? "flex-row-reverse space-x-reverse" : ""
               }`}
@@ -83,7 +84,9 @@ export function Chat() {
                       : "bg-white text-gray-900 rounded-bl-md border border-gray-200"
                   }`}
                 >
-                  <p className="text-sm leading-relaxed">{pair[keySender]}</p>
+                  <ReactMarkdown>
+                    {pair[keySender]}
+                  </ReactMarkdown>
                 </div>
               </div>
             </div>
