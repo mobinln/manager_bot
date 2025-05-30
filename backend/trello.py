@@ -100,7 +100,7 @@ def trello_search(
     query: Optional[str] = None, listName: Optional[str] = None
 ) -> TrelloCard:
     """
-    Fetch Trello cards either by a search query or by retrieving all cards on the board.
+    Fetch Trello cards either by a search query (keyword) or by retrieving all cards on the board.
 
     This function queries the Trello API to fetch cards based on the provided `query`.
     If `query` is not provided, it retrieves all cards from the current Trello board.
@@ -126,13 +126,15 @@ def trello_search(
         - "closed"                (bool):       Whether the card is archived
 
     **Notes**:
+    - Do NOT use commit hash as `query`.
+    - If the API failed or response was empty array call it with no args and get all cards
     - These fields map directly from the Trello API response.
     - If the API field is `null`, it will be returned as `None` in Python.
     - Date fields are returned as ISO 8601 strings (e.g., "2024-05-29T13:45:00.000Z").
     - If `listName` is not provided, all available fields will be returned for each card.
 
     Args:
-        query (Optional[str]): A string used to search for matching Trello cards.
+        query (Optional[str]): Partial keywords of the cards to search for matching Trello cards.
                             If omitted, all cards on the board will be returned.
         listName (Optional[str]):A comma-separated string specifying the names of card lists to include.
                           If None, cards from all available lists will be included.
@@ -162,7 +164,7 @@ def trello_search_partial(query: str, listName: Optional[list] = None):
 
 def formatResponse(info, listName: Optional[List[str]] = None):
     res = []
-    listIdDictionary={}
+    listIdDictionary = {}
     for item in info:
         list_id = item["idList"]
         if list_id in listIdDictionary:

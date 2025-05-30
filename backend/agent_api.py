@@ -13,7 +13,7 @@ from agno.embedder.openai import OpenAIEmbedder
 from agno.embedder.sentence_transformer import SentenceTransformerEmbedder
 
 from .trello import trello_search, get_trello_list_names
-from .gitlab import get_git_merge_requests
+from .gitlab import get_git_merge_requests, get_git_merge_request_comments
 import dotenv
 
 dotenv.load_dotenv()
@@ -39,7 +39,7 @@ knowledge_base.load()
 basic_agent = Agent(
     name="Basic Agent",
     model=OpenAIChat(
-        id="gpt-4o-mini",
+        id="gpt-4o",
         base_url=os.getenv("METIS_OPENAI_BASE"),
     ),  # Ensure OPENAI_API_KEY is set
     storage=SqliteStorage(table_name="agent_sessions", db_file="./data.db"),
@@ -50,7 +50,12 @@ basic_agent = Agent(
     knowledge=knowledge_base,
     show_tool_calls=True,
     debug_mode=True,
-    tools=[trello_search, get_trello_list_names, get_git_merge_requests],
+    tools=[
+        trello_search,
+        get_trello_list_names,
+        get_git_merge_requests,
+        get_git_merge_request_comments,
+    ],
 )
 
 app = FastAPIApp(agent=basic_agent).get_app()
