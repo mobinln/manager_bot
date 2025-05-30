@@ -2,7 +2,8 @@ import requests
 import dotenv
 import os
 from agno.tools import tool
-from typing import Any, Callable, Dict, Optional, List
+from typing import  Optional
+from backend.schemas import TrelloCard
 
 dotenv.load_dotenv()
 BASE_URL = "https://api.trello.com/1"
@@ -71,7 +72,7 @@ def get_card(card_id):
     requires_confirmation=False,  # Requires user confirmation before execution
     cache_results=False,  # Cache TTL in seconds (1 hour)
 )
-def trello_search(query: Optional[str] = None, listName: Optional[str] = None) -> Any:
+def trello_search(query: Optional[str] = None, listName: Optional[str] = None) -> TrelloCard:
     """
     Fetch Trello cards either by a search query or by retrieving all cards on the board.
 
@@ -86,13 +87,13 @@ def trello_search(query: Optional[str] = None, listName: Optional[str] = None) -
     Valid field names and their meanings:
 
         - "comments"              (int):        Number of comments on the card 
-        - "comment-description"   (str):        Text description related to comments 
+        - "commentDescription"   (str):        Text description related to comments 
         - "due"                   (str | None): Due date in ISO 8601 format or `None` 
         - "start"                 (str | None): Start date in ISO 8601 format or `None` 
         - "dueReminder"           (str | None): Reminder date/time in ISO format or `None` 
         - "dueComplete"           (bool):       Whether the due date has been marked as complete 
         - "email"                 (str | None): Email address associated with the card, or `None` 
-        - "listId"                (str):        ID of the list this card belongs to 
+        - "listName"                (str):        ID of the list this card belongs to 
         - "name"                  (str):        Title or name of the card 
         - "desc"                  (str):        Detailed description of the card 
         - "dateLastActivity"      (str | None): Timestamp of the last activity on the card (ISO 8601 format) or `None` 
@@ -107,17 +108,16 @@ def trello_search(query: Optional[str] = None, listName: Optional[str] = None) -
     Args:
         query (Optional[str]): A string used to search for matching Trello cards.
                             If omitted, all cards on the board will be returned.
-        listName (Optional[str]): A comma-separated string of field names to include
-                                in the result for each card. If None, all available
-                                fields will be included.
+        listName (Optional[str]):A comma-separated string specifying the names of card lists to include.
+                          If None, cards from all available lists will be included.
+
 
     Returns:
-        list[dict]: A list of dictionaries, each representing a Trello card with only the requested fields.
-                    Keys are the field names, and values match the expected types above. If a field is `null`
-                    in the Trello API, it will appear as `None` in the result.
+        list[dict]: A list of dictionaries, each representing a Trello card.
+                    Keys are the field names, and values match the expected types above.
+                    If a field is `null`in the Trello API, it will appear as `None` in the result.
     """
     if listName:
-        listName.replace(" ","")
         requestedItems=listName.split(',')
     else:
         requestedItems=None 
@@ -150,10 +150,10 @@ def formatResponse(info, listName: Optional[list] = None):
     for item in info:
         full_card_data = {
             "comments": item["badges"]["comments"],
-            "comment-description": item["badges"]["description"],
+            "commentDescription": item["badges"]["description"],
             "due": item["due"],
             "email": item.get("email"),
-            "listId": item["idList"],
+            "listName": item["idList"],
             "name": item["name"],
             "start": item["start"],
             "dueReminder": item["dueReminder"],
@@ -162,13 +162,9 @@ def formatResponse(info, listName: Optional[list] = None):
             "dueComplete": item["dueComplete"],
             "closed": item["closed"],
         }
-        if listName is None:
+        if listName == None or full_card_data["listId"] in listName:
             res.append(full_card_data)
-        else:
-            filtered_card_data = {
-                key: value for key, value in full_card_data.items() if key in listName
-            }
-            res.append(filtered_card_data)
+        
     return res
 
 
