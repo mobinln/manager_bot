@@ -86,13 +86,13 @@ def trello_search(query: Optional[str] = None, listName: Optional[str] = None) -
     Valid field names and their meanings:
 
         - "comments"              (int):        Number of comments on the card 
-        - "comment-description"   (str):        Text description related to comments 
+        - "commentDescription"   (str):        Text description related to comments 
         - "due"                   (str | None): Due date in ISO 8601 format or `None` 
         - "start"                 (str | None): Start date in ISO 8601 format or `None` 
         - "dueReminder"           (str | None): Reminder date/time in ISO format or `None` 
         - "dueComplete"           (bool):       Whether the due date has been marked as complete 
         - "email"                 (str | None): Email address associated with the card, or `None` 
-        - "listId"                (str):        ID of the list this card belongs to 
+        - "listName"                (str):        ID of the list this card belongs to 
         - "name"                  (str):        Title or name of the card 
         - "desc"                  (str):        Detailed description of the card 
         - "dateLastActivity"      (str | None): Timestamp of the last activity on the card (ISO 8601 format) or `None` 
@@ -149,10 +149,10 @@ def formatResponse(info, listName: Optional[list] = None):
     for item in info:
         full_card_data = {
             "comments": item["badges"]["comments"],
-            "comment-description": item["badges"]["description"],
+            "commentDescription": item["badges"]["description"],
             "due": item["due"],
             "email": item.get("email"),
-            "listId": item["idList"],
+            "listName": item["idList"],
             "name": item["name"],
             "start": item["start"],
             "dueReminder": item["dueReminder"],
