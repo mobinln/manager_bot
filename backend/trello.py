@@ -2,8 +2,8 @@ import requests
 import dotenv
 import os
 from agno.tools import tool
-from typing import  Optional
-from backend.schemas import TrelloCard
+from typing import Optional
+from .schemas import TrelloCard
 
 dotenv.load_dotenv()
 BASE_URL = "https://api.trello.com/1"
@@ -72,7 +72,9 @@ def get_card(card_id):
     requires_confirmation=False,  # Requires user confirmation before execution
     cache_results=False,  # Cache TTL in seconds (1 hour)
 )
-def trello_search(query: Optional[str] = None, listName: Optional[str] = None) -> TrelloCard:
+def trello_search(
+    query: Optional[str] = None, listName: Optional[str] = None
+) -> TrelloCard:
     """
     Fetch Trello cards either by a search query or by retrieving all cards on the board.
 
@@ -86,18 +88,18 @@ def trello_search(query: Optional[str] = None, listName: Optional[str] = None) -
 
     Valid field names and their meanings:
 
-        - "comments"              (int):        Number of comments on the card 
-        - "commentDescription"   (str):        Text description related to comments 
-        - "due"                   (str | None): Due date in ISO 8601 format or `None` 
-        - "start"                 (str | None): Start date in ISO 8601 format or `None` 
-        - "dueReminder"           (str | None): Reminder date/time in ISO format or `None` 
-        - "dueComplete"           (bool):       Whether the due date has been marked as complete 
-        - "email"                 (str | None): Email address associated with the card, or `None` 
-        - "listName"                (str):        ID of the list this card belongs to 
-        - "name"                  (str):        Title or name of the card 
-        - "desc"                  (str):        Detailed description of the card 
-        - "dateLastActivity"      (str | None): Timestamp of the last activity on the card (ISO 8601 format) or `None` 
-        - "closed"                (bool):       Whether the card is archived 
+        - "comments"              (int):        Number of comments on the card
+        - "commentDescription"   (str):        Text description related to comments
+        - "due"                   (str | None): Due date in ISO 8601 format or `None`
+        - "start"                 (str | None): Start date in ISO 8601 format or `None`
+        - "dueReminder"           (str | None): Reminder date/time in ISO format or `None`
+        - "dueComplete"           (bool):       Whether the due date has been marked as complete
+        - "email"                 (str | None): Email address associated with the card, or `None`
+        - "listName"                (str):        ID of the list this card belongs to
+        - "name"                  (str):        Title or name of the card
+        - "desc"                  (str):        Detailed description of the card
+        - "dateLastActivity"      (str | None): Timestamp of the last activity on the card (ISO 8601 format) or `None`
+        - "closed"                (bool):       Whether the card is archived
 
     **Notes**:
     - These fields map directly from the Trello API response.
@@ -118,9 +120,9 @@ def trello_search(query: Optional[str] = None, listName: Optional[str] = None) -
                     If a field is `null`in the Trello API, it will appear as `None` in the result.
     """
     if listName:
-        requestedItems=listName.split(',')
+        requestedItems = listName.split(",")
     else:
-        requestedItems=None 
+        requestedItems = None
     if not query:
         return formatResponse(get_board_cards(get_board_id()), requestedItems)
     else:
@@ -164,7 +166,7 @@ def formatResponse(info, listName: Optional[list] = None):
         }
         if listName == None or full_card_data["listId"] in listName:
             res.append(full_card_data)
-        
+
     return res
 
 
