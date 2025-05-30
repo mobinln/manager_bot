@@ -107,17 +107,16 @@ def trello_search(query: Optional[str] = None, listName: Optional[str] = None) -
     Args:
         query (Optional[str]): A string used to search for matching Trello cards.
                             If omitted, all cards on the board will be returned.
-        listName (Optional[str]): A comma-separated string of field names to include
-                                in the result for each card. If None, all available
-                                fields will be included.
+        listName (Optional[str]):A comma-separated string specifying the names of card lists to include.
+                          If None, cards from all available lists will be included.
+
 
     Returns:
-        list[dict]: A list of dictionaries, each representing a Trello card with only the requested fields.
-                    Keys are the field names, and values match the expected types above. If a field is `null`
-                    in the Trello API, it will appear as `None` in the result.
+        list[dict]: A list of dictionaries, each representing a Trello card.
+                    Keys are the field names, and values match the expected types above.
+                    If a field is `null`in the Trello API, it will appear as `None` in the result.
     """
     if listName:
-        listName.replace(" ","")
         requestedItems=listName.split(',')
     else:
         requestedItems=None 
@@ -162,13 +161,9 @@ def formatResponse(info, listName: Optional[list] = None):
             "dueComplete": item["dueComplete"],
             "closed": item["closed"],
         }
-        if listName is None:
+        if listName == None or full_card_data["listId"] in listName:
             res.append(full_card_data)
-        else:
-            filtered_card_data = {
-                key: value for key, value in full_card_data.items() if key in listName
-            }
-            res.append(filtered_card_data)
+        
     return res
 
 
