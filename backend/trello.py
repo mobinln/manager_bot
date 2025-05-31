@@ -3,6 +3,7 @@ import dotenv
 import os
 from agno.tools import tool
 from typing import List, Optional
+
 from backend.schemas import TrelloCard
 
 dotenv.load_dotenv()
@@ -62,6 +63,16 @@ def get_cards_on_list(list_id):
 def get_card(card_id):
     """Get a single card by ID."""
     return request("GET", f"/cards/{card_id}")
+
+
+def create_card(
+    *,
+    name: str,
+    desc: str,
+    idList: str,
+):
+    """Create a single Card"""
+    return request("POST", f"/cards?idList={idList}", json={"desc": desc, "name": name})
 
 
 @tool(
