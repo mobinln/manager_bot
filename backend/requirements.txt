@@ -7,3 +7,5 @@ openai
 fastapi[standard]
 python-dotenv
 chromadb
+pypdf
+sqlalchemy

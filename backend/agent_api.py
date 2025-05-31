@@ -22,7 +22,7 @@ vector_db = ChromaDb(
     collection="documents",
     embedder=OpenAIEmbedder(
         api_key=os.getenv("OPENAI_API_KEY"),
-        base_url=os.getenv("METIS_OPENAI_BASE"),
+        base_url=os.getenv("OPENAI_API_BASE"),
     ),
     path=os.getcwd() + "/chromadb",
 )
@@ -39,8 +39,8 @@ basic_agent = Agent(
     name="Basic Agent",
     model=OpenAIChat(
         id="gpt-4o-mini",
-        base_url=os.getenv("METIS_OPENAI_BASE"),
-    ),  # Ensure OPENAI_API_KEY is set
+        base_url=os.getenv("OPENAI_API_BASE"),
+    ),
     storage=SqliteStorage(table_name="agent_sessions", db_file="./data.db"),
     add_history_to_messages=True,
     num_history_responses=3,
