@@ -1,9 +1,9 @@
-arxiv
+# arxiv
 pandas
 agno
-llama-index
+# llama-index
 openai
-sentence-transformers[openvino]
+# sentence-transformers[openvino]
 fastapi[standard]
 python-dotenv
 chromadb

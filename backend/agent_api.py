@@ -1,20 +1,20 @@
 import os
+import dotenv
+
 from agno.agent import Agent
 from agno.knowledge.pdf import PDFReader, PDFKnowledgeBase
 from agno.vectordb.chroma import ChromaDb
 from agno.models.openai import OpenAIChat
-from agno.models.openai.like import OpenAILike
 from agno.storage.sqlite import SqliteStorage
 from agno.app.fastapi.app import FastAPIApp
 from agno.app.fastapi.serve import serve_fastapi_app
+from agno.embedder.openai import OpenAIEmbedder
+
 from fastapi.middleware.cors import CORSMiddleware
 
-from agno.embedder.openai import OpenAIEmbedder
-from agno.embedder.sentence_transformer import SentenceTransformerEmbedder
 
 from .trello import trello_search, get_trello_list_names
 from .gitlab import get_git_merge_requests, get_git_merge_request_comments
-import dotenv
 
 dotenv.load_dotenv()
 
@@ -25,11 +25,10 @@ vector_db = ChromaDb(
         base_url=os.getenv("METIS_OPENAI_BASE"),
     ),
     path=os.getcwd() + "/chromadb",
-    # embedder=SentenceTransformerEmbedder(),
 )
 
 knowledge_base = PDFKnowledgeBase(
-    path=os.getcwd() + "/backend/resources/data",
+    path=os.getcwd() + "/backend/documents",
     vector_db=vector_db,
     reader=PDFReader(chunk=True),
 )
@@ -39,7 +38,7 @@ knowledge_base.load()
 basic_agent = Agent(
     name="Basic Agent",
     model=OpenAIChat(
-        id="gpt-4o",
+        id="gpt-4o-mini",
         base_url=os.getenv("METIS_OPENAI_BASE"),
     ),  # Ensure OPENAI_API_KEY is set
     storage=SqliteStorage(table_name="agent_sessions", db_file="./data.db"),

@@ -191,8 +191,3 @@ def formatResponse(info, listName: Optional[List[str]] = None):
             res.append(full_card_data)
 
     return res
-
-
-# resp=get_trello_list_names()
-# print(trello_search(listName=resp[0]))
-# print(resp)
