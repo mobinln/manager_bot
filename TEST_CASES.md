@@ -1,0 +1,6 @@
+- What are out product requirements based on documents?
+- what trello task got merged in the last merge request?
+- who commented about the wrong database design?
+- first get all the merge request, then check and find what trello tasks got merged
+- How was the development quality of the "feat(HomePage): add shopping home page" based on the fix merge requests?
+- List In Progress trello tasks
