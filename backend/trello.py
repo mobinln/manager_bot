@@ -2,7 +2,7 @@ import requests
 import dotenv
 import os
 from agno.tools import tool
-from typing import List, Optional
+from typing import List, Optional, Any
 
 from backend.schemas import TrelloCard
 
@@ -65,23 +65,39 @@ def get_card(card_id):
     return request("GET", f"/cards/{card_id}")
 
 
+@tool(
+    name="create_card",
+    description="creates a card on a list",
+    show_result=False,
+    stop_after_tool_call=False,
+)
 def create_card(
-    *,
     name: str,
     desc: str,
     idList: str,
-):
-    """Create a single Card"""
+) -> Any:
+    """
+    Creates a card on a list
+    This function makes a POST request to the Trello API to create a card on a list.
+
+    Args:
+        idList (str): ID of the list that this card will be added
+        name (str): Name of the card to add
+        desc (str): card's description
+
+    Returns:
+        dict: A HTTP response indicating the result of the request
+    """
     return request("POST", f"/cards?idList={idList}", json={"desc": desc, "name": name})
 
 
 @tool(
-    name="get_trello_list_names",  # Custom name for the tool (otherwise the function name is used)
-    description="gets names of existing lists on board ",  # Custom description (otherwise the function docstring is used)
-    show_result=False,  # Show result after function call
-    stop_after_tool_call=False,  # Return the result immediately after the tool call and stop the agent                     # Hook to run before and after execution
-    requires_confirmation=False,  # Requires user confirmation before execution
-    cache_results=False,  # Cache TTL in seconds (1 hour)
+    name="get_trello_list_names",
+    description="gets names of existing lists on board ",
+    show_result=False,
+    stop_after_tool_call=False,
+    requires_confirmation=False,
+    cache_results=True,
 )
 def get_trello_list_names() -> List[str]:
     """
@@ -96,16 +112,19 @@ def get_trello_list_names() -> List[str]:
                    Only items with a "name" field will be included in the result.
     """
     board = request("GET", f"/boards/{get_board_id()}/lists")
-    return [item["name"] for item in board if "name" in item]
+    return [
+        {"id": item["id"], "name": item["name"]} for item in board if "name" in item
+    ]
 
 
 @tool(
-    name="trello_search",  # Custom name for the tool (otherwise the function name is used)
-    description="get cards from trello from a query ",  # Custom description (otherwise the function docstring is used)
-    show_result=False,  # Show result after function call
-    stop_after_tool_call=False,  # Return the result immediately after the tool call and stop the agent                     # Hook to run before and after execution
-    requires_confirmation=False,  # Requires user confirmation before execution
-    cache_results=False,  # Cache TTL in seconds (1 hour)
+    name="trello_search",
+    description="get cards from trello from a query",
+    show_result=False,
+    stop_after_tool_call=False,
+    requires_confirmation=False,
+    cache_results=True,
+    cache_ttl=10 * 60,
 )
 def trello_search(
     query: Optional[str] = None, listName: Optional[str] = None

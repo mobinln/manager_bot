@@ -12,8 +12,7 @@ from agno.embedder.openai import OpenAIEmbedder
 
 from fastapi.middleware.cors import CORSMiddleware
 
-
-from .trello import trello_search, get_trello_list_names
+from .trello import trello_search, get_trello_list_names, create_card
 from .gitlab import get_git_merge_requests, get_git_merge_request_comments
 
 dotenv.load_dotenv()
@@ -52,6 +51,7 @@ basic_agent = Agent(
     tools=[
         trello_search,
         get_trello_list_names,
+        create_card,
         get_git_merge_requests,
         get_git_merge_request_comments,
     ],
